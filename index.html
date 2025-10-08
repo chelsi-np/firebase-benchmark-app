@@ -10,7 +10,6 @@
 </head>
 
 <body class="bg-light">
-
     <div class="container py-4">
         <h1 class="mb-4 text-center">🔥 Firebase Benchmark Tool</h1>
 
@@ -67,6 +66,15 @@
 
     <!-- ✅ Firebase SDKs -->
     <script type="module">
+        const logEl = document.getElementById('log');
+        const resultsTable = document.querySelector('#resultsTable tbody');
+
+        function log(msg) {
+            const time = new Date().toLocaleTimeString();
+            logEl.textContent += `[${time}] ${msg}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
         import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
@@ -82,50 +90,42 @@
         };
 
         // ✅ Initialize Firebase
-        console.log("Initializing Firebase app...");
+        log("Initializing Firebase app...");
         const app = initializeApp(firebaseConfig);
         const firestore = getFirestore(app);
         const realtimeDB = getDatabase(app);
 
         // ✅ Connection check function
+        // ✅ Connection check function
         async function verifyFirebaseConnections() {
-            console.log("Verifying Realtime Database connection...");
+            log("Verifying Realtime Database connection...");
             try {
                 // Try a small read from Realtime DB
                 const testRef = ref(realtimeDB, '.info/connected');
                 const snap = await get(testRef);
                 if (snap.exists()) {
-                    console.log("✅ Realtime Database reachable");
+                    log("✅ Realtime Database reachable");
                 } else {
-                    console.log("⚠️ Realtime Database did not return expected .info/connected snapshot");
+                    log("⚠️ Realtime Database did not return expected .info/connected snapshot");
                 }
             } catch (err) {
-                console.log(`❌ Realtime DB connection failed: ${err.message}`);
+                log(`❌ Realtime DB connection failed: ${err.message}`);
             }
 
-            console.log("Verifying Firestore connection...");
+            log("Verifying Firestore connection...");
             try {
                 // Use a lightweight call to a non-existing doc
                 await getDoc(doc(firestore, 'connection_test', 'ping'));
-                console.log("✅ Firestore reachable");
+                log("✅ Firestore reachable");
             } catch (err) {
-                console.log(`❌ Firestore connection failed: ${err.message}`);
+                log(`❌ Firestore connection failed: ${err.message}`);
             }
 
-            console.log("Initialization & connectivity checks completed.");
+            log("Initialization & connectivity checks completed.");
         }
 
         // Run connection check once on page load
         verifyFirebaseConnections();
-
-        const logEl = document.getElementById('log');
-        const resultsTable = document.querySelector('#resultsTable tbody');
-
-        function log(msg) {
-            const time = new Date().toLocaleTimeString();
-            logEl.textContent += `[${time}] ${msg}\n`;
-            logEl.scrollTop = logEl.scrollHeight;
-        }
 
         function recordResult(test, dbType, duration) {
             const row = document.createElement('tr');
@@ -137,66 +137,6 @@
             `;
             resultsTable.prepend(row);
         }
-
-        // // 🧪 Firestore Single Read
-        // document.getElementById('fs-single-read').onclick = async () => {
-        //     const t0 = performance.now();
-        //     const snap = await getDoc(doc(firestore, 'test', 'data1'));
-        //     const t1 = performance.now();
-        //     log(`Firestore single read: ${JSON.stringify(snap.data())}`);
-        //     recordResult('Single Read', 'Firestore', t1 - t0);
-        // };
-
-        // // 🧪 Firestore Multiple Reads
-        // document.getElementById('fs-multi-read').onclick = async () => {
-        //     const t0 = performance.now();
-        //     for (let i = 1; i <= 5; i++) {
-        //         await getDoc(doc(firestore, 'test', `data${i}`));
-        //     }
-        //     const t1 = performance.now();
-        //     log(`Firestore 5 reads completed`);
-        //     recordResult('Multiple Reads (5)', 'Firestore', t1 - t0);
-        // };
-
-        // // 🧪 Firestore Write
-        // document.getElementById('fs-write').onclick = async () => {
-        //     const id = `test_${Date.now()}`;
-        //     const t0 = performance.now();
-        //     await setDoc(doc(firestore, 'benchmark', id), { time: Date.now() });
-        //     const t1 = performance.now();
-        //     log(`Firestore write completed`);
-        //     recordResult('Write', 'Firestore', t1 - t0);
-        // };
-
-        // // 🧪 Realtime Single Read
-        // document.getElementById('rtdb-single-read').onclick = async () => {
-        //     const t0 = performance.now();
-        //     const snapshot = await get(ref(realtimeDB, 'test/data1'));
-        //     const t1 = performance.now();
-        //     log(`Realtime DB single read: ${JSON.stringify(snapshot.val())}`);
-        //     recordResult('Single Read', 'Realtime DB', t1 - t0);
-        // };
-
-        // // 🧪 Realtime Multiple Reads
-        // document.getElementById('rtdb-multi-read').onclick = async () => {
-        //     const t0 = performance.now();
-        //     for (let i = 1; i <= 5; i++) {
-        //         await get(ref(realtimeDB, `test/data${i}`));
-        //     }
-        //     const t1 = performance.now();
-        //     log(`Realtime DB 5 reads completed`);
-        //     recordResult('Multiple Reads (5)', 'Realtime DB', t1 - t0);
-        // };
-
-        // // 🧪 Realtime Write
-        // document.getElementById('rtdb-write').onclick = async () => {
-        //     const id = `test_${Date.now()}`;
-        //     const t0 = performance.now();
-        //     await set(ref(realtimeDB, `benchmark/${id}`), { time: Date.now() });
-        //     const t1 = performance.now();
-        //     log(`Realtime DB write completed`);
-        //     recordResult('Write', 'Realtime DB', t1 - t0);
-        // };
 
         // Main Functions Here
         // Single Read
@@ -257,6 +197,9 @@
         };
 
     </script>
+
+    <!-- Bootstrap JS Bundle (only once!) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
