@@ -14,7 +14,7 @@
         <h1 class="mb-4 text-center">🔥 Firebase Benchmark Tool</h1>
 
         <div class="row g-3 mb-3">
-            <!-- <div class="col-md-6">
+            <div class="col-md-6">
                 <div class="card p-3">
                     <h4>Firestore Tests</h4>
                     <button id="fs-single-read" class="btn btn-primary mt-2 w-100">Single Read</button>
@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <!--<div class="col-md-6">
                 <div class="card p-3">
                     <h4>Realtime DB Tests</h4>
                     <button id="rtdb-single-read" class="btn btn-primary mt-2 w-100">Single Read</button>
@@ -31,12 +31,12 @@
                     <button id="rtdb-write" class="btn btn-success mt-2 w-100">Write</button>
                 </div>
             </div> -->
-            <div class="col-md-12">
+            <!-- <div class="col-md-12">
                 <h4>Firestore VS Realtime Database Tests</h4>
                 <button id="single-read" class="btn btn-primary mt-2 w-100">Single Read</button>
                 <button id="multi-read" class="btn btn-secondary mt-2 w-100">Multiple Reads (5)</button>
                 <button id="write" class="btn btn-success mt-2 w-100">Write</button>
-            </div>
+            </div> -->
         </div>
 
         <div class="card">
@@ -58,7 +58,7 @@
 
         <div class="card mt-3">
             <div class="card-body">
-                <h5>📝 Log</h5>
+                <h5>📝 Log Records</h5>
                 <pre id="log" class="bg-dark text-light p-2 rounded" style="height: 200px; overflow-y: auto;"></pre>
             </div>
         </div>
@@ -110,7 +110,7 @@
         // ------------------------
 
         // Single Read
-        document.getElementById('single-read').onclick = async () => {
+        document.getElementById('fs-single-read').onclick = async () => {
             log('Running Firestore Single Read test...');
             const s0 = performance.now();
             const snap = await getDoc(doc(firestore, 'test', 'data1'));
@@ -134,7 +134,7 @@
         };
 
         // Write
-        document.getElementById('rtdb-write').onclick = async () => {
+        document.getElementById('fs-write').onclick = async () => {
             log('Running Firestore Write test...');
             const id2 = `test_${Date.now()}`;
             const s0 = performance.now();
