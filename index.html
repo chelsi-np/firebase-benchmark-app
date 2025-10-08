@@ -94,38 +94,7 @@
         const app = initializeApp(firebaseConfig);
         const firestore = getFirestore(app);
         const realtimeDB = getDatabase(app);
-
-        // ✅ Connection check function
-        // ✅ Connection check function
-        async function verifyFirebaseConnections() {
-            log("Verifying Realtime Database connection...");
-            try {
-                // Try a small read from Realtime DB
-                const testRef = ref(realtimeDB, '.info/connected');
-                const snap = await get(testRef);
-                if (snap.exists()) {
-                    log("✅ Realtime Database reachable");
-                } else {
-                    log("⚠️ Realtime Database did not return expected .info/connected snapshot");
-                }
-            } catch (err) {
-                log(`❌ Realtime DB connection failed: ${err.message}`);
-            }
-
-            log("Verifying Firestore connection...");
-            try {
-                // Use a lightweight call to a non-existing doc
-                await getDoc(doc(firestore, 'connection_test', 'ping'));
-                log("✅ Firestore reachable");
-            } catch (err) {
-                log(`❌ Firestore connection failed: ${err.message}`);
-            }
-
-            log("Initialization & connectivity checks completed.");
-        }
-
-        // Run connection check once on page load
-        verifyFirebaseConnections();
+        log("Completed.");
 
         function recordResult(test, dbType, duration) {
             const row = document.createElement('tr');
@@ -141,6 +110,8 @@
         // Main Functions Here
         // Single Read
         document.getElementById('single-read').onclick = async () => {
+            log('Attempting to run Single Read tests.');
+
             // Realtime Single Read
             const t0 = performance.now();
             const snapshot = await get(ref(realtimeDB, 'test/data1'));
@@ -154,10 +125,13 @@
             const s1 = performance.now();
             log(`Firestore single read: ${JSON.stringify(snap.data())}`);
             recordResult('Single Read', 'Firestore', s1 - s0);
+
+            log('End of Single Read tests.');
         };
 
         // Multiple Read
         document.getElementById('fs-multi-read').onclick = async () => {
+            log('Attempting to run Multiple Read tests.');
             // Realtime Multi Read
             const t0 = performance.now();
             for (let i = 1; i <= 5; i++) {
@@ -175,10 +149,13 @@
             const s1 = performance.now();
             log(`Firestore 5 reads completed`);
             recordResult('Multiple Reads (5)', 'Firestore', s1 - s0);
+
+            log('End of Multiple Read tests.');
         };
 
         // Write
         document.getElementById('rtdb-write').onclick = async () => {
+            log('Attempting to run Write tests.');
             // Realtime Write
             const id = `test_${Date.now()}`;
             const t0 = performance.now();
@@ -194,8 +171,9 @@
             const s1 = performance.now();
             log(`Firestore write completed`);
             recordResult('Write', 'Firestore', s1 - s0);
-        };
 
+            log('End of Write Read tests.');
+        };
     </script>
 
     <!-- Bootstrap JS Bundle (only once!) -->
