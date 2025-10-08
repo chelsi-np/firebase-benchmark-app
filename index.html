@@ -23,14 +23,14 @@
                 </div>
             </div>
 
-            <!--<div class="col-md-6">
+            <div class="col-md-6">
                 <div class="card p-3">
                     <h4>Realtime DB Tests</h4>
                     <button id="rtdb-single-read" class="btn btn-primary mt-2 w-100">Single Read</button>
                     <button id="rtdb-multi-read" class="btn btn-secondary mt-2 w-100">Multiple Reads (5)</button>
                     <button id="rtdb-write" class="btn btn-success mt-2 w-100">Write</button>
                 </div>
-            </div> -->
+            </div>
             <!-- <div class="col-md-12">
                 <h4>Firestore VS Realtime Database Tests</h4>
                 <button id="single-read" class="btn btn-primary mt-2 w-100">Single Read</button>
@@ -77,12 +77,16 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
 
-        // 🔧 Replace with your Firebase config
+        // Add connection state monitoring
+        import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyCjxPu5oeCU7N_kby60HQSG6bn2iW8YVPo",
             authDomain: "fir-benchmark-test.firebaseapp.com",
-            projectId: "fir-benchmark-test",
+            databaseURL: "https://fir-benchmark-test-default-rtdb.asia-southeast1.firebasedatabase.app/", // Important for Realtime DB
+            projectId: "fir-benchmark-test", // For Firestore
             storageBucket: "fir-benchmark-test.firebasestorage.app",
             messagingSenderId: "219037660705",
             appId: "1:219037660705:web:f37ac979f0f9f740ee5560"
@@ -92,16 +96,53 @@
         log("Initializing Firebase app...");
         const app = initializeApp(firebaseConfig);
         const firestore = getFirestore(app);
-        log("Firestore initialized successfully.");
+        const realtimeDB = getDatabase(app);
+        log("Firebase initialized successfully.");
+
+
+        // Test Firestore connection
+        async function testFirestoreConnection() {
+            log("Attempting Firestore connection");
+            try {
+                const docRef = doc(firestore, '_test_connection', 'test');
+                await setDoc(docRef, { timestamp: new Date() });
+                log("Firestore write successful");
+
+                const snapshot = await getDoc(docRef);
+                log("Firestore read successful");
+            } catch (error) {
+                log("Firestore error: " + error.message);
+                log("Error code: " + error.code);
+            }
+        }
+
+        // Test Realtime Database connection
+        async function testRealtimeDBConnection() {
+            log("Attempting Realtime DB connection");
+            try {
+                const testRef = ref(realtimeDB, '_test_connection');
+                await set(testRef, { timestamp: new Date().toISOString() });
+                log("Realtime DB write successful");
+
+                const snapshot = await get(testRef);
+                log("Realtime DB read successful");
+            } catch (error) {
+                log("Realtime DB error: " + error.message);
+            }
+        }
+
+        // Run tests
+        testFirestoreConnection();
+        testRealtimeDBConnection();
 
         function recordResult(test, dbType, duration) {
             const row = document.createElement('tr');
             row.innerHTML = `
-            <td>${test}</td>
-            <td>${dbType}</td>
-            <td>${duration.toFixed(2)}</td>
-            <td>${new Date().toLocaleTimeString()}</td>
-        `;
+                <td>${test}</td>
+                <td>${dbType}</td>
+                <td>${duration.toFixed(2)}</td>
+                <td>${new Date().toLocaleTimeString()}</td>
+            `;
             resultsTable.prepend(row);
         }
 
@@ -143,6 +184,40 @@
             log(`Firestore write completed`);
             recordResult('Write', 'Firestore', s1 - s0);
             log('Write test completed.');
+        };
+
+        // ------------------------
+        // Realtime DB Tests Only
+        // ------------------------
+
+        // Single Read
+        document.getElementById('rtdb-single-read').onclick = async () => {
+            const t0 = performance.now();
+            const snapshot = await get(ref(realtimeDB, 'test/data1'));
+            const t1 = performance.now();
+            log(`Realtime DB single read: ${JSON.stringify(snapshot.val())}`);
+            recordResult('Single Read', 'Realtime DB', t1 - t0);
+        };
+
+        // Multiple Reads
+        document.getElementById('rtdb-multi-read').onclick = async () => {
+            const t0 = performance.now();
+            for (let i = 1; i <= 5; i++) {
+                await get(ref(realtimeDB, `test/data${i}`));
+            }
+            const t1 = performance.now();
+            log(`Realtime DB 5 reads completed`);
+            recordResult('Multiple Reads (5)', 'Realtime DB', t1 - t0);
+        };
+
+        // Write
+        document.getElementById('rtdb-write').onclick = async () => {
+            const id = `test_${Date.now()}`;
+            const t0 = performance.now();
+            await set(ref(realtimeDB, `benchmark/${id}`), { time: Date.now() });
+            const t1 = performance.now();
+            log(`Realtime DB write completed`);
+            recordResult('Write', 'Realtime DB', t1 - t0);
         };
     </script>
 
