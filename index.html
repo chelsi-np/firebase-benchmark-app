@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔥 Firebase Benchmark: Firestore vs Realtime DB</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 30px 0;
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+
+        pre {
+            background: #212529;
+            color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .results-table th,
+        .results-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1 class="text-center mb-4">🔥 Firebase Performance Benchmark</h1>
+        <p class="text-center mb-4">Compare Firestore vs Realtime DB with multiple runs for better accuracy.</p>
+
+        <!-- Controls -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                    <label for="numRuns" class="form-label mb-0">Number of runs per test:</label>
+                    <input type="number" id="numRuns" class="form-control w-auto" value="10" min="1" />
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary" id="btnSingle">Benchmark Single Read</button>
+                    <button class="btn btn-success" id="btnMultiple">Benchmark Multiple Reads</button>
+                    <button class="btn btn-warning" id="btnWrite">Benchmark Write</button>
+                    <button class="btn btn-outline-secondary" id="btnClear">Clear Results</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">📊 Average Performance (ms)</h5>
+                <table class="table table-bordered results-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Test</th>
+                            <th>Firestore (avg)</th>
+                            <th>Realtime DB (avg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Single Read</td>
+                            <td id="fsSingle">-</td>
+                            <td id="rtSingle">-</td>
+                        </tr>
+                        <tr>
+                            <td>Multiple Reads (5 each)</td>
+                            <td id="fsMulti">-</td>
+                            <td id="rtMulti">-</td>
+                        </tr>
+                        <tr>
+                            <td>Write</td>
+                            <td id="fsWrite">-</td>
+                            <td id="rtWrite">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="mt-3">
+            <h5>📝 Detailed Log</h5>
+            <pre id="log">No tests run yet.</pre>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getDatabase, ref, get, set, push } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
+
+        // 🔧 Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjxPu5oeCU7N_kby60HQSG6bn2iW8YVPo",
+            authDomain: "fir-benchmark-test.firebaseapp.com",
+            projectId: "fir-benchmark-test",
+            storageBucket: "fir-benchmark-test.firebasestorage.app",
+            messagingSenderId: "219037660705",
+            appId: "1:219037660705:web:f37ac979f0f9f740ee5560"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const firestore = getFirestore(app);
+        const realtime = getDatabase(app);
+
+        const logEl = document.getElementById('log');
+        const numRunsInput = document.getElementById('numRuns');
+        const results = {
+            fsSingle: document.getElementById('fsSingle'),
+            rtSingle: document.getElementById('rtSingle'),
+            fsMulti: document.getElementById('fsMulti'),
+            rtMulti: document.getElementById('rtMulti'),
+            fsWrite: document.getElementById('fsWrite'),
+            rtWrite: document.getElementById('rtWrite')
+        };
+
+        const log = msg => { logEl.textContent += `\n${msg}`; };
+        const clearLog = () => {
+            logEl.textContent = '--- Log cleared ---\n';
+            Object.values(results).forEach(cell => cell.textContent = '-');
+        };
+
+        async function benchmark(label, runs, testFn) {
+            const times = [];
+            for (let i = 1; i <= runs; i++) {
+                const start = performance.now();
+                await testFn(i);
+                const end = performance.now();
+                const duration = end - start;
+                times.push(duration);
+                log(`⏱️ ${label} Run ${i}: ${duration.toFixed(2)} ms`);
+            }
+            const avg = times.reduce((a, b) => a + b, 0) / times.length;
+            log(`📊 ${label} Average: ${avg.toFixed(2)} ms`);
+            return avg.toFixed(2);
+        }
+
+        // SINGLE READ TEST
+        async function benchmarkSingleRead() {
+            log("\n🚀 Benchmark: Single Read");
+            const runs = Number(numRunsInput.value);
+
+            const fsAvg = await benchmark('Firestore Single Read', runs, async () => {
+                await getDoc(doc(firestore, 'test/data1'));
+            });
+            results.fsSingle.textContent = fsAvg;
+
+            const rtAvg = await benchmark('Realtime Single Read', runs, async () => {
+                await get(ref(realtime, 'test/data1'));
+            });
+            results.rtSingle.textContent = rtAvg;
+        }
+
+        // MULTIPLE READS TEST
+        async function benchmarkMultipleReads() {
+            log("\n🚀 Benchmark: Multiple Reads (5 per run)");
+            const runs = Number(numRunsInput.value);
+
+            const fsAvg = await benchmark('Firestore 5 Reads', runs, async () => {
+                for (let i = 1; i <= 5; i++) {
+                    await getDoc(doc(firestore, `test/data${i}`));
+                }
+            });
+            results.fsMulti.textContent = fsAvg;
+
+            const rtAvg = await benchmark('Realtime 5 Reads', runs, async () => {
+                for (let i = 1; i <= 5; i++) {
+                    await get(ref(realtime, `test/data${i}`));
+                }
+            });
+            results.rtMulti.textContent = rtAvg;
+        }
+
+        // WRITE TEST
+        async function benchmarkWrite() {
+            log("\n🚀 Benchmark: Write");
+            const runs = Number(numRunsInput.value);
+
+            const fsAvg = await benchmark('Firestore Write', runs, async () => {
+                await setDoc(doc(firestore, 'test/writeBenchmark'), {
+                    timestamp: new Date().toISOString(),
+                    message: "Hello Firestore!"
+                });
+            });
+            results.fsWrite.textContent = fsAvg;
+
+            const rtAvg = await benchmark('Realtime Write', runs, async () => {
+                const newRef = push(ref(realtime, 'test'));
+                await set(newRef, {
+                    timestamp: new Date().toISOString(),
+                    message: "Hello Realtime!"
+                });
+            });
+            results.rtWrite.textContent = rtAvg;
+        }
+
+        // Event Listeners
+        document.getElementById('btnSingle').addEventListener('click', benchmarkSingleRead);
+        document.getElementById('btnMultiple').addEventListener('click', benchmarkMultipleReads);
+        document.getElementById('btnWrite').addEventListener('click', benchmarkWrite);
+        document.getElementById('btnClear').addEventListener('click', clearLog);
+
+    </script>
+</body>
+
+</html>
