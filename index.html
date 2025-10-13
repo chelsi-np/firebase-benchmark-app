@@ -10,7 +10,7 @@
 </head>
 
 <body class="bg-light">
-    <div class="container py-4">
+    <!-- <div class="container py-4">
         <h1 class="mb-4 text-center">🔥 Firebase Benchmark Tool</h1>
 
         <div class="row g-3 mb-3">
@@ -31,12 +31,6 @@
                     <button id="rtdb-write" class="btn btn-success mt-2 w-100">Write</button>
                 </div>
             </div>
-            <!-- <div class="col-md-12">
-                <h4>Firestore VS Realtime Database Tests</h4>
-                <button id="single-read" class="btn btn-primary mt-2 w-100">Single Read</button>
-                <button id="multi-read" class="btn btn-secondary mt-2 w-100">Multiple Reads (5)</button>
-                <button id="write" class="btn btn-success mt-2 w-100">Write</button>
-            </div> -->
         </div>
 
         <div class="card">
@@ -62,9 +56,9 @@
                 <pre id="log" class="bg-dark text-light p-2 rounded" style="height: 200px; overflow-y: auto;"></pre>
             </div>
         </div>
-    </div>
+    </div> -->
 
-
+    <!-- 
     <script type="module">
         const logEl = document.getElementById('log');
         const resultsTable = document.querySelector('#resultsTable tbody');
@@ -219,7 +213,36 @@
             log(`Realtime DB write completed`);
             recordResult('Write', 'Realtime DB', t1 - t0);
         };
-    </script>
+    </script> -->
+
+    <!-- TEST LOCKED -->
+    <div class="box">
+        <h3>1. Sign In</h3>
+        <button onclick="signIn()">Sign In Anonymously</button>
+        <p id="userStatus">Not signed in</p>
+    </div>
+
+    <div class="box">
+        <h3>2. Save Data</h3>
+        <input type="text" id="nameInput" placeholder="Your name">
+        <input type="text" id="messageInput" placeholder="Your message">
+        <button onclick="saveData()">Save to Database</button>
+    </div>
+
+    <div class="box">
+        <h3>3. Load Data</h3>
+        <button onclick="loadData()">Load My Data</button>
+        <div id="dataDisplay"></div>
+    </div>
+
+    <div class="box">
+        <h3>4. What's Happening?</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <!-- Note that the file name must be the same as the JS file you are going to save! -->
+    <script type="module" src="/sample_for_students/firebase.js"></script>
 
 
     <!-- Bootstrap JS Bundle (only once!) -->
